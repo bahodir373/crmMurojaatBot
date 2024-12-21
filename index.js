@@ -5,6 +5,7 @@ const Message = require('./models/Message')
 
 const token = process.env.BOT_TOKEN
 const mongoUri = process.env.MONGODB_URI
+const adminsID = [6445758541, 6288095997, 6053902856, 5575836992, 738588309]
 
 mongoose
 	.connect(mongoUri, { useNewUrlParser: true, useUnifiedTopology: true })
@@ -26,18 +27,31 @@ bot.on('message', async msg => {
 			)
 		} else if (text === '/get_data') {
 			try {
-				const data = await Message.find()
-				if (data.length > 0) {
-					const formattedData = data
-						.map((msg, index) => `${index + 1}. ${msg.message || 'Maʼlumot yo‘q'}`)
-						.join('\n')
-					await bot.sendMessage(chatId, `Mana bazadagi maʼlumotlar:\n${formattedData}`)
-				} else {
-					await bot.sendMessage(chatId, 'Hozircha bazada maʼlumot yo‘q.')
+				if (adminsID.includes(chatId)) {
+					const data = await Message.find()
+					if (data.length > 0) {
+						const formattedData = data
+							.map(
+								(msg, index) =>
+									`${index + 1}. ${msg.message || 'Maʼlumot yo‘q'}`
+							)
+							.join('\n')
+						await bot.sendMessage(
+							chatId,
+							`Mana bazadagi maʼlumotlar:\n${formattedData}`
+						)
+					} else {
+						await bot.sendMessage(chatId, 'Hozircha bazada maʼlumot yo‘q.')
+					}
+				} else{
+					return bot.sendMessage(chatId, `Kechirasiz, siz admin emassiz!`)
 				}
 			} catch (error) {
 				console.error(error)
-				await bot.sendMessage(chatId, 'Maʼlumotlarni olishda xatolik yuz berdi.')
+				await bot.sendMessage(
+					chatId,
+					'Maʼlumotlarni olishda xatolik yuz berdi.'
+				)
 			}
 		} else {
 			if (text.length < 20) {
