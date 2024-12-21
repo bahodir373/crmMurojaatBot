@@ -8,8 +8,8 @@ const mongoUri = process.env.MONGODB_URI
 
 mongoose
 	.connect(mongoUri, { useNewUrlParser: true, useUnifiedTopology: true })
-	.then(() => console.log('MongoDB connected'))
-	.catch(err => console.error('MongoDB connection error:', err))
+	.then(() => console.log('MongoDB ulandi'))
+	.catch(err => console.error('MongoDB ulanishda xatolik:', err))
 
 const bot = new TelegramBot(token, { polling: true })
 
@@ -24,27 +24,42 @@ bot.on('message', async msg => {
 				chatId,
 				`Assalomu alaykum ${msg.from.first_name}! Bu yerga murojaatingizni yozishingiz mumkin.`
 			)
+		} else if (text === '/get_data') {
+			try {
+				const data = await Message.find()
+				if (data.length > 0) {
+					const formattedData = data
+						.map((msg, index) => `${index + 1}. ${msg.message || 'Maʼlumot yo‘q'}`)
+						.join('\n')
+					await bot.sendMessage(chatId, `Mana bazadagi maʼlumotlar:\n${formattedData}`)
+				} else {
+					await bot.sendMessage(chatId, 'Hozircha bazada maʼlumot yo‘q.')
+				}
+			} catch (error) {
+				console.error(error)
+				await bot.sendMessage(chatId, 'Maʼlumotlarni olishda xatolik yuz berdi.')
+			}
 		} else {
 			if (text.length < 20) {
 				return bot.sendMessage(
 					chatId,
-					`Iltimos murojaatingizni to'liqroq yozing`
+					`Iltimos, murojaatingizni to‘liqroq yozing.`
 				)
 			} else {
 				const newMessage = new Message({
 					userId,
-					username: username || 'Anonymous',
+					username: username || 'Anonim',
 					message: text,
 				})
 				await newMessage.save()
 
-				bot.sendMessage(msg.chat.id, 'Murojaatingiz saqlandi!')
+				bot.sendMessage(chatId, 'Murojaatingiz muvaffaqiyatli saqlandi!')
 			}
 		}
 	} catch (error) {
-		console.error('Error saving message:', error)
-		bot.sendMessage(msg.chat.id, "Xatolik yuz berdi, qayta urinib ko'ring.")
+		console.error('Xabarni saqlashda xatolik:', error)
+		bot.sendMessage(chatId, "Xatolik yuz berdi, qayta urinib ko'ring.")
 	}
 })
 
-console.log('Bot is running...')
+console.log('Bot ishlayapti...')
